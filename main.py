@@ -1,148 +1,62 @@
 import dash
-from dash import dcc, html, Input, Output, ClientsideFunction
+import dash_core_components as dcc
+import dash_html_components as html
+from dash.dependencies import Input, Output
 import plotly.express as px
-import pandas as pd
-import pathlib
 
-# Read the CSV file with explicit dtype for the 'Month' column
-# Specify the dtype for the 'Month' column and treat other mixed types columns as strings
-dtype_mapping = {'Month': 'object', 'Payment_Behaviour': 'str', 'Column2': 'str'}  # Replace with the actual column names
+# Sample Data
+df = px.data.gapminder()
+df_2007 = df.query("year==2007")
 
-# Read the CSV file with specified dtypes
-df = pd.read_csv('all_data.csv', delimiter=';', dtype=dtype_mapping, low_memory=False)
+# Create Dash app
+app = dash.Dash(__name__)
 
-# Map month names to integer values
-month_mapping = {'January': 1, 'February': 2, 'March': 3, 'April': 4, 'May': 5, 'June': 6, 'July': 7, 'August': 8, 'September': 9, 'October': 10, 'November': 11, 'December': 12}
-
-# Create a new column 'Month_Int' with mapped integer values
-df['Month_Int'] = df['Month'].map(month_mapping)
-
-# Print the dataframe
-print(df.to_string())
-
-# Initialize the Dash app
-app = dash.Dash(
-    __name__,
-    meta_tags=[{"name": "viewport", "content": "width=device-width, initial-scale=1"}],
-)
-app.title = "Credit Data Visualization"
-
-# Path
-BASE_PATH = pathlib.Path(__file__).parent.resolve()
-DATA_PATH = BASE_PATH.joinpath("data").resolve()
-
-# Register all columns for callbacks
-all_columns = df.columns.tolist()
-scatter_inputs = [Input((i + "_scatter_plot"), "selectedData") for i in all_columns]
-
-
-def description_card():
-    return html.Div(
-        id="description-card",
+# Define the layout
+app.layout = html.Div(children=[
+    # Left column with logo and credit score info
+    html.Div(
+        style={'width': '20%', 'display': 'inline-block', 'vertical-align': 'top'},
         children=[
-            html.H5("Credit Data Analytics"),
-            html.H3("Welcome to the Credit Data Visualization Dashboard"),
-            html.Div(
-                id="intro",
-                children="Explore credit data over time. Click on the scatter plot to visualize the relationship between different variables.",
+            # Logo in the top left corner
+            html.Img(
+                src="logo.png",  # Replace with the actual filename of your logo
+                style={'width': '100px', 'height': '100px'}
             ),
-        ],
-    )
-
-
-def generate_control_card():
-    return html.Div(
-        id="control-card",
+            html.H3('Credit Score Info'),
+            html.P("Your credit score is a numerical representation of your creditworthiness. "
+                   "It's a measure that helps lenders assess the risk of lending money to you. "
+                   "A higher credit score indicates lower credit risk.")
+        ]
+    ),
+    # Right column with plots
+    html.Div(
+        style={'width': '80%', 'display': 'inline-block'},
         children=[
-            html.P("Select Variable for X-axis"),
-            dcc.Dropdown(
-                id="x-axis-select",
-                options=[{"label": col, "value": col} for col in all_columns],
-                value=all_columns[0],
+            # First Plot
+            dcc.Graph(
+                id='scatter-plot',
+                figure=px.scatter(
+                    df_2007,
+                    x="gdpPercap", y="lifeExp", size="pop", color="continent",
+                    log_x=True, size_max=60,
+                    title="Gapminder 2007: Scatter Plot"
+                )
             ),
-            html.Br(),
-            html.P("Select Variable for Y-axis"),
-            dcc.Dropdown(
-                id="y-axis-select",
-                options=[{"label": col, "value": col} for col in all_columns],
-                value=all_columns[1],
+            # Second Plot
+            dcc.Graph(
+                id='surface-plot',
+                figure=px.scatter_3d(
+                    df_2007,
+                    x="gdpPercap", y="lifeExp", z="pop", color="continent",
+                    size_max=60,
+                    title="Gapminder 2007: 3D Scatter Plot"
+                )
             ),
-        ],
+        ]
     )
+])
 
+# Run the app
+if __name__ == '__main__':
+    app.run_server(debug=True, port=8060)
 
-def generate_scatter_plot(x_axis, y_axis, scatter_click):
-    hovertemplate = "<b>Month</b>: %{text} <br><b>%{y}</b>: %{x}"
-    scatter_fig = px.scatter(df, x=x_axis, y=y_axis, hover_data=['Month_Int'],
-                             title="Credit Score vs Month", labels={'Month_Int': 'Month', 'Credit_Score': 'Credit Score'},
-                             hovertemplate=hovertemplate)
-
-    # Highlight clicked point
-    if scatter_click is not None:
-        selected_index = scatter_click["points"][0]["pointIndex"]
-        scatter_fig.data[0].selectedpoints = [selected_index]
-
-    return scatter_fig
-
-
-app.layout = html.Div(
-    id="app-container",
-    children=[
-        # Banner
-        html.Div(
-            id="banner",
-            className="banner",
-            children=[html.Img(src=app.get_asset_url("plotly_logo.png"))],
-        ),
-        # Left column
-        html.Div(
-            id="left-column",
-            className="four columns",
-            children=[description_card(), generate_control_card()]
-                     + [
-                         html.Div(
-                             ["initial child"], id="output-clientside", style={"display": "none"}
-                         )
-                     ],
-        ),
-        # Right column
-        html.Div(
-            id="right-column",
-            className="eight columns",
-            children=[
-                # Scatter Plot
-                html.Div(
-                    id="scatter_plot_card",
-                    children=[
-                        html.B("Scatter Plot"),
-                        html.Hr(),
-                        dcc.Graph(id="scatter_plot"),
-                    ],
-                ),
-            ],
-        ),
-    ],
-)
-
-
-@app.callback(
-    Output("scatter_plot", "figure"),
-    [
-        Input("x-axis-select", "value"),
-        Input("y-axis-select", "value"),
-        Input("scatter_plot", "selectedData"),
-    ],
-)
-def update_scatter_plot(x_axis, y_axis, scatter_click):
-    return generate_scatter_plot(x_axis, y_axis, scatter_click)
-
-
-app.clientside_callback(
-    ClientsideFunction(namespace="clientside", function_name="resize"),
-    Output("output-clientside", "children"),
-    [Input("scatter_plot", "selectedData")] + scatter_inputs,
-)
-
-# Run the server
-if __name__ == "__main__":
-    app.run_server(debug=True)
