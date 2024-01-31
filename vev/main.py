@@ -75,6 +75,7 @@ def create_new_plot(df):
         title="Num_of_Delayed_Payment vs. Delay_from_due_date by Credit Score",
         labels={'Num_of_Delayed_Payment': 'Number of Delayed Payments', 'Delay_from_due_date': 'Delay from Due Date'},
         category_orders={"Credit_Score_Category": ["Poor", "Standard", "Good"]},  # Specify the order of categories
+        color_discrete_map = {'Poor': 'red', 'Standard': 'blue', 'Good': 'green'}
     )
     return fig
 
