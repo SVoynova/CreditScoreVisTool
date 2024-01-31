@@ -38,6 +38,15 @@ def calculate_trend(df):
     trend_data = df.groupby(['Month', 'Customer_ID'])['Credit_Score_Num'].mean().reset_index()
     return trend_data
 
+def exclude_outliers(df, column):
+    Q1 = df[column].quantile(0.25)
+    Q3 = df[column].quantile(0.75)
+    IQR = Q3 - Q1
+
+    # Exclude outliers based on IQR
+    df_filtered = df[(df[column] >= Q1 - 1.5 * IQR) & (df[column] <= Q3 + 1.5 * IQR)]
+    return df_filtered
+
 # Define consistent colors for the pie charts
 pie_chart_colors = ['#003f5c', '#444e86', '#955196', '#dd5182', '#ff6e54', '#ffa600', '#808080']
 
@@ -235,7 +244,7 @@ def update_trend_analysis(n_clicks, occupation, income, age):
     if age != 'All':
         age_min, age_max = parse_age_range(age)
         filtered_df = filtered_df[(filtered_df['Age'] >= age_min) & (filtered_df['Age'] <= age_max)]
-
+    
     # Calculate trend analysis
     trend_data = calculate_trend(filtered_df)
 
@@ -349,6 +358,11 @@ def update_plot2(n_clicks, occupation, income, age):
         age_min, age_max = parse_age_range(age)
         filtered_df = filtered_df[(filtered_df['Age'] >= age_min) & (filtered_df['Age'] <= age_max)]
 
+    # Exclude outliers using IQR
+    filtered_df['Annual_Income'] = pd.to_numeric(filtered_df['Annual_Income'], errors='coerce')
+    filtered_df = exclude_outliers(filtered_df, 'Annual_Income')
+    filtered_df = exclude_outliers(filtered_df, 'Num_of_Delayed_Payment')
+
     # Create the plot
     fig = px.scatter(
         filtered_df,
@@ -407,6 +421,11 @@ def update_new_plot(n_clicks, occupation, income, age):
     if age != 'All':
         age_min, age_max = parse_age_range(age)
         filtered_df = filtered_df[(filtered_df['Age'] >= age_min) & (filtered_df['Age'] <= age_max)]
+
+    # Exclude outliers using IQR
+    filtered_df['Annual_Income'] = pd.to_numeric(filtered_df['Annual_Income'], errors='coerce')
+    filtered_df = exclude_outliers(filtered_df, 'Annual_Income')
+    filtered_df = exclude_outliers(filtered_df, 'Num_of_Delayed_Payment')
 
     # Create the new plot
     fig = create_new_plot(filtered_df)
