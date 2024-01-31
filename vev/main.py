@@ -9,9 +9,10 @@ import plotly.express as px
 from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 
+selected_features = {}
 
 # Load the dataset
-df = pd.read_csv('cleaned01.csv', low_memory=False)
+df = pd.read_csv(r'C:\Users\dgons\Desktop\CreditScoreVisTool-main\vev\cleaned01.csv', low_memory=False)
 print(df.columns)
 
 # Replace invalid data with a default value
@@ -27,6 +28,9 @@ df['Credit_Score_Num'] = df['Credit_Score'].map(score_mapping)
 good_df = df[df['Credit_Score'] == 'Good']
 standard_df = df[df['Credit_Score'] == 'Standard']
 poor_df = df[df['Credit_Score'] == 'Poor']
+
+# Convert 'Month' column to datetime format
+df['Month'] = pd.to_datetime(df['Month'], format='%m')
 
 # Function to calculate trend for each individual over time
 def calculate_trend(df):
@@ -235,6 +239,8 @@ def update_trend_analysis(n_clicks, occupation, income, age):
     # Calculate trend analysis
     trend_data = calculate_trend(filtered_df)
 
+    trend_data = trend_data.groupby('Customer_ID').filter(lambda x: x['Credit_Score_Num'].nunique() > 1)
+
     # Plot trend analysis
     fig = go.Figure()
     for customer_id in trend_data['Customer_ID'].unique():
@@ -352,6 +358,7 @@ def update_plot2(n_clicks, occupation, income, age):
         labels={'Credit_Score': 'Credit Score', 'Annual_Income': 'Annual Income'},
         category_orders={"Credit_Score": ["Good", "Standard", "Poor"]},
         size_max=30,
+        color_discrete_map={'Poor': 'red', 'Standard': 'purple', 'Good': 'green'},  # Change colors here
     )
     return fig
 
