@@ -16,7 +16,7 @@ import pandas as pd
 selected_features = {}
 
 # Load the dataset
-df = pd.read_csv(r'cleaned01.csv', low_memory=False)
+df = pd.read_csv(r'vev\cleaned01.csv', low_memory=False)
 print(df.columns)
 
 # Replace invalid data with a default value
@@ -220,18 +220,6 @@ result_df.reset_index(inplace=True)
 # Create Dash app
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
-# Modal definition (Step 1)
-instructions_modal = dbc.Modal(
-    [
-        dbc.ModalBody("Please select all necessary features before clicking 'Save Selection'."),
-        dbc.ModalFooter(dbc.Button("Close", id="close-modal", className="ml-auto"))
-    ],
-    id="instructions-modal",
-    size="lg",
-    is_open=False,  # Initially not visible
-    style={"color": "black"}
-)
-
 # Modal for displaying clicked point details
 details_modal = dbc.Modal(
     [
@@ -376,7 +364,8 @@ app.layout = dbc.Container(
 @app.callback(
     Output("instructions-modal", "is_open"),
     [Input("save-button", "n_clicks"), Input("close-modal", "n_clicks")],
-    [State("instructions-modal", "is_open")]
+    [State("instructions-modal", "is_open")],
+    suppress_callback_exceptions=True
 )
 def toggle_modal(n_clicks_save, n_clicks_close, is_open):
     if n_clicks_save == 0:
