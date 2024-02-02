@@ -1,0 +1,21 @@
+body {
+    background-color: white !important;
+}
+/* assets/style.css */
+.custom-save-button {
+    background-color: #0056b3; /* Custom background color */
+    color: white; /* Text color */
+    border-radius: 20px; /* Rounded corners */
+    padding: 10px 20px; /* Custom padding */
+    border: 10px; /* Remove default border */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+    margin-top: 20px;
+    display: block;
+    margin-left: auto;
+    margin-right: 1px;
+    width: fit-content;
+}
+
+.custom-save-button:hover {
+    background-color: #0056b5; /* Darker shade on hover */
+}
