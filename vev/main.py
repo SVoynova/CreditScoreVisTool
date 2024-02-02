@@ -328,7 +328,6 @@ app.layout = dbc.Container(
                 # Right column with interactive plot, table, and correlation results
                 dbc.Col(
                     [
-                        instructions_modal,
                         # Wrap the Graph component with dcc.Loading for lazy loading
                         dcc.Loading(
                             id="loading-trend-graph",
