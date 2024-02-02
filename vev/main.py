@@ -244,6 +244,9 @@ details_modal = dbc.Modal(
     id="details-modal",
     is_open=False,
 )
+# Assuming 'occupation_options' is your list of options for the 'occupation-dropdown'
+occupation_options = [{'label': occupation if occupation != '______' else 'Unknown', 'value': occupation} for occupation in df['Occupation'].unique()]
+
 
 # Define the layout
 app.layout = dbc.Container(
@@ -258,17 +261,25 @@ app.layout = dbc.Container(
                             style={'width': '100px', 'height': '100px'}
                         ),
                         html.H3(''),
-                        html.H3('Credit Score Info'),
-                        html.P("Your credit score is a numerical representation of your creditworthiness. "
-                               "It's a measure that helps lenders assess the risk of lending money to you. "
-                               "A higher credit score indicates lower credit risk."),
+                        html.H2('CreditVis'),
+                        html.P(dcc.Markdown('**Your Credit Score Analysis Dashboard**')),
+                        html.P(style={'font-size': '12px'}, children="Empower Your Financial Decisions with Data-Driven Insights. "
+                               f"CreditVis provides you with an interactive experience to explore and understand the "
+                               "factors influencing credit scores. Dive deep into trends, compare scenarios, and uncover "
+                               "the nuances of creditworthiness with our comprehensive analysis tool."),
+                        html.Hr(),  # Horizontal line for separation
+                        html.H5("How to use CreditVis?"),
+                        html.P(style={'font-size': '13px'}, children = dcc.Markdown('**1. Select Your Filters:** Begin by choosing your parameters.')),
+                        html.P(style={'font-size': '13px'}, children = dcc.Markdown('**2. Save Your Selection:** With a click, save your settings to see the data that matters most to you.')),
+                        html.P(style={'font-size': '13px'}, children = dcc.Markdown('**3. Interact with Visuals:** Click on any point in our graphs to get more detailed information. Hover over elements to reveal additional data points.')),
                         html.Hr(),  # Horizontal line for separation
                         # Dropdown menus with labels
                         html.Label('Occupation:'),
+                        # Then use 'occupation_options' in your dcc.Dropdown component
                         dcc.Dropdown(
                             id='occupation-dropdown',
-                            options=[{'label': occupation, 'value': occupation} for occupation in df['Occupation'].unique()],
-                            value='All occupations',  # Default value
+                            options=occupation_options,
+                            value='All Occupations',  # Set the default value if needed
                             clearable=False  # Prevents users from clearing the selection
                         ),
                         html.Label('Annual Income:'),
@@ -311,8 +322,6 @@ app.layout = dbc.Container(
                         html.Button('Save Selection', id='save-button', n_clicks=0, className='custom-save-button'),
                         # Add this to your app layout
                         html.Div(id='dummy-div', style={'display': 'none'})
-
-
                     ],
                     width=3, # Adjust the width as needed
                 ),
